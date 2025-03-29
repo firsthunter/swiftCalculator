@@ -2,70 +2,135 @@ import Foundation
 import SwiftUI
 
 class CalculatorViewModel: ObservableObject {
-    private let calculatorModel = CalculatorModel()
-    @Published var displayText = "0"
+    private let calculatorCore = CalculatorCore()
+    private var model = CalculatorModel()
     
-    // Input handling
-    func appendDigit(_ digit: String) {
-        calculatorModel.appendDigit(digit)
-        updateDisplay()
+    @Published var displayText: String = "0"
+    private var isEnteringNumber = true
+    
+    init() {
+        updateDisplayText()
+    }
+    
+    private func updateDisplayText() {
+        displayText = formatValue(model.currentValue)
+    }
+    
+    private func formatValue(_ value: Double) -> String {
+        // Remove trailing zeros for whole numbers
+        if value == Double(Int(value)) {
+            return String(Int(value))
+        }
+        return String(value)
     }
     
     func clear() {
-        calculatorModel.clear()
-        updateDisplay()
+        model.reset()
+        displayText = "0"
+        isEnteringNumber = true
     }
     
-    func setOperation(_ operation: Operation) {
-        calculatorModel.setOperation(operation)
-        updateDisplay()
-    }
-    
-    func calculate() {
-        calculatorModel.calculate()
-        updateDisplay()
-    }
-    
-    func toggleSign() {
-        if displayText.hasPrefix("-") {
-            displayText.removeFirst()
-        } else if displayText != "0" {
-            displayText = "-" + displayText
+    func appendDigit(_ digit: String) {
+        if !isEnteringNumber {
+            displayText = digit
+            isEnteringNumber = true
+        }
+        else if displayText == "0" && digit != "." {
+            displayText = digit
+        }
+        else if digit == "." && displayText.contains(".") {
+            return
+        }
+        else {
+            displayText += digit
         }
         
         if let value = Double(displayText) {
-            calculatorModel.clear()
-            calculatorModel.appendDigit(String(value))
+            model.currentValue = value
         }
-        updateDisplay()
+    }
+    
+    func setOperation(_ operation: Operation) {
+        if let value = Double(displayText) {
+            model.currentValue = value
+        }
+        
+        if model.currentOperation != .none {
+            performCalculation()
+        }
+        
+        model.currentOperation = operation
+        model.storedValue = model.currentValue
+        model.lastOperationWasPerformed = true
+        
+        if isUnaryOperation(operation) {
+            calculate()
+        } else {
+            isEnteringNumber = false
+        }
+    }
+    
+    func calculate() {
+        if let value = Double(displayText) {
+            model.currentValue = value
+        }
+        
+        performCalculation()
+        
+        displayText = formatValue(model.currentValue)
+        isEnteringNumber = false
+    }
+    
+    private func performCalculation() {
+        guard model.currentOperation != .none else { return }
+        
+        switch model.currentOperation {
+        case .sine:
+            model.currentValue = calculatorCore.sine(model.currentValue)
+        case .cosine:
+            model.currentValue = calculatorCore.cosine(model.currentValue)
+        case .tangent:
+            model.currentValue = calculatorCore.tangent(model.currentValue)
+        case .addition:
+            model.currentValue = calculatorCore.add(model.currentValue, to: model.storedValue)
+        case .subtraction:
+            model.currentValue = calculatorCore.subtract(model.currentValue, from: model.storedValue)
+        case .multiplication:
+            model.currentValue = calculatorCore.multiply(model.currentValue, by: model.storedValue)
+        case .division:
+            model.currentValue = calculatorCore.divide(model.storedValue, by: model.currentValue)
+        case .none:
+            break
+        }
+        
+        model.currentOperation = .none
+        model.lastOperationWasPerformed = true
+    }
+    
+    private func isUnaryOperation(_ operation: Operation) -> Bool {
+        return operation == .sine || operation == .cosine || operation == .tangent
+    }
+    
+    func toggleSign() {
+        if let value = Double(displayText) {
+            let negatedValue = -value
+            displayText = formatValue(negatedValue)
+            model.currentValue = negatedValue
+        }
     }
     
     func percentage() {
         if let value = Double(displayText) {
-            let percentValue = value / 100
-            displayText = formatNumber(percentValue)
-            calculatorModel.clear()
-            calculatorModel.appendDigit(displayText)
+            let percentValue = value / 100.0
+            displayText = formatValue(percentValue)
+            model.currentValue = percentValue
         }
-        updateDisplay()
     }
     
     func inputPi() {
-        let piValue = Double.pi
-        displayText = formatNumber(piValue)
-        calculatorModel.clear()
-        calculatorModel.appendDigit(displayText)
-        updateDisplay()
-    }
-    
-    private func updateDisplay() {
-        displayText = calculatorModel.getDisplayText()
-    }
-    
-    private func formatNumber(_ number: Double) -> String {
-        if number == Double(Int(number)) {
-            return String(Int(number))
-        }
-        return String(number)
+        let pi = Double.pi
+        displayText = formatValue(pi)
+        model.currentValue = pi
+        isEnteringNumber = false
     }
 }

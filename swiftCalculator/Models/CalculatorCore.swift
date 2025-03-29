@@ -1,10 +1,3 @@
-//
-//  CalculatorCore.swift
-//  swiftCalculator
-//
-//  Created by Mac Mini 6 on 28/3/2025.
-//
-
 import Foundation
 
 class CalculatorCore {
