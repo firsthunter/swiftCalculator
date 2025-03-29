@@ -20,7 +20,8 @@ class CalculatorCore {
     }
     
     func sine(_ value: Double) -> Double {
-        return sin(value)
+        let radians = value * .pi / 180 
+        return sin(radians)
     }
     
     func cosine(_ value: Double) -> Double {
@@ -28,6 +29,7 @@ class CalculatorCore {
     }
     
     func tangent(_ value: Double) -> Double {
-        return tan(value)
+        let radians = value * .pi / 180
+        return tan(radians)
     }
 }
