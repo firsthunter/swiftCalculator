@@ -33,6 +33,3 @@ To run this project locally, follow these steps:
 1. Launch the app on your iOS device.
 2. Use the on-screen buttons to perform calculations.
 
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
