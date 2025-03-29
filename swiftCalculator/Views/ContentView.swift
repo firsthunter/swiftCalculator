@@ -28,7 +28,6 @@ struct ContentView: View {
         VStack(spacing: 0) {
             Spacer()
             
-            // Display
             DisplayView(displayText: calculator.displayText)
                 .padding(.horizontal)
                 .padding(.bottom, geometry.size.height * 0.02)
@@ -45,7 +44,6 @@ struct ContentView: View {
             VStack(spacing: 0) {
                 Spacer()
                 
-                // Display
                 DisplayView(displayText: calculator.displayText)
                     .padding(.horizontal)
                     .padding(.bottom, geometry.size.height * 0.03)
